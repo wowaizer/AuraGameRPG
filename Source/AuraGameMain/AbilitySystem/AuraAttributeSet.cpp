@@ -3,7 +3,10 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "AuraGameMain/Interaction/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "AuraGameMain/AuraGameplayTags.h"
+#include <AuraGameMain/Player/AuraPlayerController.h>
 
 
 UAuraAttributeSet::UAuraAttributeSet()
@@ -76,7 +79,7 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 
 void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const
 {
-	// Surce = causer of the effect, Target = target of the effect (owner of this atrribute set), 
+	// Source = causer of the effect, Target = target of the effect (owner of this atrribute set), 
 	Props.EffectContextHandle = Data.EffectSpec.GetContext();
 	Props.SourceASC = Props.EffectContextHandle.GetOriginalInstigatorAbilitySystemComponent();
 
@@ -98,8 +101,8 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 
 		if(Props.SourceController)
 		{
-			ACharacter *SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());
-
+			Props.SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());
+			
 		}
 
 	}
@@ -114,6 +117,8 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 }
 
 
+
+
 void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
@@ -124,7 +129,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	if(Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(),0.f,GetMaxHealth()));
-		UE_LOG(LogTemp,Warning,TEXT("Changed Health on %s, Health: %f"),*Props.TargetAvatarActor->GetName(), GetHealth());
+		/*UE_LOG(LogTemp,Warning,TEXT("Changed Health on %s, Health: %f"),*Props.TargetAvatarActor->GetName(), GetHealth());*/
 	}
 
 	if(Data.EvaluatedData.Attribute == GetManaAttribute())
@@ -140,10 +145,41 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		{
 			const float NewHealth = GetHealth() - LocaIncomingDamage;
 			SetHealth(FMath::Clamp(NewHealth,0.f,GetMaxHealth()));
-			const bool bFatal = NewHealth <= 0.f;
 
+			const bool bFatal = NewHealth <= 0.f;
+			if(bFatal)
+			{
+				ICombatInterface *CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				if(CombatInterface)
+				{
+					CombatInterface->Die();
+				}
+			}
+			else
+			{
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			}
+
+			ShowFloatingText(Props,LocaIncomingDamage);
+				
 		}
 	}
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+{
+	if(Props.SourceCharacter != Props.TargetCharacter)
+	{
+		if(AAuraPlayerController *PC  = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter,0)))
+		{
+			PC->ShowDamageNumber(Damage,Props.TargetCharacter);
+		}
+	}
+
+	
+
 }
 
 void UAuraAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) const

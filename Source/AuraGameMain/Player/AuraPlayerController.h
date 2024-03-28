@@ -1,13 +1,14 @@
 #pragma once
 
+#include "AuraGameMain/AuraGameplayTags.h"
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "AuraGameMain/AuraGameplayTags.h"
 #include "GameplayTagContainer.h"
 #include "AuraPlayerController.generated.h"
 
 
 
+class UDamageTextComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
@@ -27,6 +28,9 @@ public:
 	AAuraPlayerController();
 
 	virtual void PlayerTick(float DeltaTime) override;
+
+	UFUNCTION(Client,Reliable)
+	void ShowDamageNumber (float DamageAmount, ACharacter *TargetCharacter);
 
 protected:
 	virtual void BeginPlay() override;
@@ -86,4 +90,6 @@ private:
 	//UPROPERTY()
 	//TObjectPtr<IEnemyInterface>ThisActor; 
 
+	 UPROPERTY(EditDefaultsOnly)
+	 TSubclassOf<UDamageTextComponent>DamageTextComponentClass;
 };
