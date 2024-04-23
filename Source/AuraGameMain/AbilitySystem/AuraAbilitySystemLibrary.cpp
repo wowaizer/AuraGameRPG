@@ -6,6 +6,8 @@
 #include "AuraGameMain/Game/AuraGameModeBase.h"
 #include "AbilitySystemComponent.h"
 #include "AuraGameMain/UI/WidgetController/AuraWidgetController.h"
+#include <AuraGameMain/AuraAbilityTypes.h>
+#include <AuraGameMain/Interaction/CombatInterface.h>
 
 UOverlayWidgetController* UAuraAbilitySystemLibrary::GetOverlayWidgetController(const UObject* WorldContextObject)
 {
@@ -93,16 +95,30 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject *World
 
 }
 
-void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObjec, UAbilitySystemComponent* ASC)
+void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObjec, UAbilitySystemComponent* ASC,ECharacterClass CharacterClass)
 {
 
 
 	UCharacterClassInfo *ClassInfo = GetCharacterClassInfo(WorldContextObjec);
 
+	if(ClassInfo == nullptr) return;
+
 	for (auto AbilityClass : ClassInfo->CommonAbilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass,1);
 		ASC->GiveAbility(AbilitySpec);
+	}
+
+	const FCharacterClassDefaultInfo &DefaultInfo = ClassInfo->GetClassDefaultInfo(CharacterClass);
+
+	for(auto AbilityClass : DefaultInfo.StartupAbilities)
+	{
+		ICombatInterface *CombatInterface  = Cast<ICombatInterface>(ASC->GetAvatarActor());
+		if(CombatInterface)
+		{
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass,CombatInterface->GetPlayerLevel());
+			ASC->GiveAbility(AbilitySpec);
+		}
 	}
 }
 
@@ -115,4 +131,76 @@ UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObj
 	return AuraGameMode->CharacterClassInfo;
 
 	 
+}
+
+bool UAuraAbilitySystemLibrary::IsBlockedHit(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+
+	if(const FAuraGameplayEffectContext *AuraContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraContext->IsBlockedHit();
+	}
+	return false;
+}
+
+bool UAuraAbilitySystemLibrary::IsCriticalHit(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if(const FAuraGameplayEffectContext *AuraContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraContext->IsCricalHit();
+	}
+	return false;
+}
+
+void UAuraAbilitySystemLibrary::SetIsBlockedHit(UPARAM(ref) FGameplayEffectContextHandle& EffectContextHandle, bool bInIsBlockedHit)
+{
+
+	if(FAuraGameplayEffectContext *AuraContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraContext->SetIsBlockedHit(bInIsBlockedHit);
+	}
+
+}
+
+void UAuraAbilitySystemLibrary::SetIsCriticalHit(UPARAM(ref)FGameplayEffectContextHandle& EffectContextHandle, bool bInIsCriticalHit)
+{
+	if(FAuraGameplayEffectContext *AuraContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraContext->SetIsCriticalHit(bInIsCriticalHit);
+	}
+}
+
+void UAuraAbilitySystemLibrary::GetLivePlayerswithinRadius(const UObject* WorldContextObject, TArray<AActor*>& OutOverlappingActors,
+	TArray<AActor*> ActorsToIgnore, float Radius, const FVector& SphereOrigin)
+{
+
+	FCollisionQueryParams SphereParams;
+	SphereParams.AddIgnoredActors(ActorsToIgnore);
+
+	TArray<FOverlapResult> Overlaps;
+	if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		World->OverlapMultiByObjectType(Overlaps, SphereOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::InitType::AllDynamicObjects), FCollisionShape::MakeSphere(Radius), SphereParams);
+		for (FOverlapResult& Overlap : Overlaps)
+		{
+			
+			if(Overlap.GetActor()->Implements<UCombatInterface>() && !ICombatInterface::Execute_IsDead(Overlap.GetActor()))
+			{
+				OutOverlappingActors.AddUnique(Overlap.GetActor());
+			}
+		
+		}
+	}
+}
+
+bool UAuraAbilitySystemLibrary::IsNotFriends(AActor* FirstActor, AActor* SecondActor)
+{
+
+	const bool bBothArePlayers = FirstActor->ActorHasTag(FName("Player")) && SecondActor->ActorHasTag(FName("Player"));
+
+	const bool bBothAreEnemies =  FirstActor->ActorHasTag(FName("Enemy")) && SecondActor->ActorHasTag(FName("Enemy"));
+
+	const bool bFriends = bBothArePlayers || bBothAreEnemies;
+
+	return !bFriends;
 }

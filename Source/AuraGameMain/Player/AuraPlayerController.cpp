@@ -29,15 +29,15 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	
 }
 
-void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter *TargetCharacter)
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter *TargetCharacter,bool bBlockedHit, bool bCriticalHit)
 {
-	if(IsValid(TargetCharacter) && DamageTextComponentClass)
+	if(IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
 	{
 		UDamageTextComponent *DamageText = NewObject<UDamageTextComponent>(TargetCharacter,DamageTextComponentClass);
 		DamageText->RegisterComponent();
 		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(),FAttachmentTransformRules::KeepRelativeTransform);
 		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		DamageText->SetDamageText(DamageAmount);
+		DamageText->SetDamageText(DamageAmount,bBlockedHit,bCriticalHit);
 	}
 }
 
@@ -126,7 +126,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 					Spline->AddSplinePoint(PointLoc,ESplineCoordinateSpace::World);
 					/*	DrawDebugSphere(GetWorld(),PointLoc,8.f,8,FColor::Green,false,5.);*/
 				}
-				CashedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+				if(NavPath->PathPoints.Num() > 2) //add this for pass throuhg crushes
+				{
+					CashedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+				}
 				bAutoRunning = true;
 			}
 		}

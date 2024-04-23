@@ -113,6 +113,76 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		AddNativeGameplayTag(FName("Damage"),
 			FString("Tag for Damage"));
 
+	//Damage Types
+
+	GameplayTags.Damage_Fire = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Damage.Fire"),
+			FString("Fire Damage Type"));
+
+	GameplayTags.Damage_Lightning = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Damage.Lightning"),
+			FString("Lightning Damage Type"));
+
+	GameplayTags.Damage_Arcane = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Damage.Arcane"),
+			FString("Arcane Damage Type"));
+
+	GameplayTags.Damage_Physical = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Damage.Physical"),
+			FString("Physical Damage Type"));
+
+
+	//Resistances
+
+	GameplayTags.Attributes_Resistance_Fire = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Attributes.Resistance.Fire"),
+			FString("Fire Resistance Type"));
+
+	GameplayTags.Attributes_Resistance_Lightning = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Attributes.Resistance.Lightning"),
+			FString("Lightning Resistance Type"));
+
+	GameplayTags.Attributes_Resistance_Arcane = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Attributes.Resistance.Arcane"),
+			FString("Arcane Resistance Type"));
+
+	GameplayTags.Attributes_Resistance_Physical = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Attributes.Resistance.Physical"),
+			FString("Physical Resistance Type"));
+
+
+	//Attack abilities tags
+	
+	GameplayTags.Abilities_Attack = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Abilities.Attack"),
+			FString("Attack Ability Tag"));
+
+
+	//Montage tags
+
+	GameplayTags.Montage_Attack_Weapon = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Montage.Attack.Weapon"),
+			FString("Weapon Tag"));
+
+	GameplayTags.Montage_Attack_RightHand = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Montage.Attack.RightHand"),
+			FString("RightHand Tag"));
+
+
+	GameplayTags.Montage_Attack_LeftHand = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Montage.Attack.LeftHand"),
+			FString("LeftHand Tag"));
+
+	//Map of Damage Types to Resistances
+
+
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Fire,GameplayTags.Attributes_Resistance_Fire);
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Lightning,GameplayTags.Attributes_Resistance_Lightning);
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Arcane,GameplayTags.Attributes_Resistance_Arcane);
+	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Physical,GameplayTags.Attributes_Resistance_Physical);
+
+	//Effects
+
 	GameplayTags.Effects_HitReact = UGameplayTagsManager::Get().
 		AddNativeGameplayTag(FName("Effects.HitReact"),
 			FString("Tag granting when Hit Reacting"));

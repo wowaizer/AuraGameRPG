@@ -28,9 +28,14 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector &ProjectileTargetLocati
 	ICombatInterface *CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo());
 	if(CombatInterface)
 	{
-		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
+
+		const FVector SocketLocation =  ICombatInterface::Execute_GetCombatSocketLocation(
+			GetAvatarActorFromActorInfo(), 
+			FAuraGameplayTags::Get().Montage_Attack_Weapon
+			);
+
 		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
-		Rotation.Pitch = 0.f;
+		//Rotation.Pitch = 0.f;
 
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);
@@ -47,18 +52,36 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector &ProjectileTargetLocati
 		const UAbilitySystemComponent* SourceASC = 
 			UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
 
+		FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+		EffectContextHandle.SetAbility(this);
+		EffectContextHandle.AddSourceObject(Projectile);
+		TArray<TWeakObjectPtr<AActor>> Actors;
+		Actors.Add(Projectile);
+		EffectContextHandle.AddActors(Actors);
+		FHitResult HitResult;
+		HitResult.Location = ProjectileTargetLocation;
+		EffectContextHandle.AddHitResult(HitResult);
+
+
 		const FGameplayEffectSpecHandle SpecHandle = 
-		SourceASC->MakeOutgoingSpec(DamageEffecClass,GetAbilityLevel(),SourceASC->MakeEffectContext());
+		SourceASC->MakeOutgoingSpec(DamageEffecClass,GetAbilityLevel(),EffectContextHandle);
 		
 
 		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
 
-		const float ScaledDamage = Damage.GetValueAtLevel(15);  /*GetAbilityLevel()*/
-		/*GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("Firebolt Damage %f"),ScaledDamage));*/
+		
+		for(auto &Pair : DamageTypes)
+		{
+			
 
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Damage,ScaledDamage);
+			const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());  /*GetAbilityLevel()*/
+			/*GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("Firebolt Damage %f"),ScaledDamage));*/
+
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,Pair.Key,ScaledDamage);
+			
+		}
+
 		Projectile->DamageEffectSpecHandle = SpecHandle;
-	
 		Projectile->FinishSpawning(SpawnTransform);
 	}
 

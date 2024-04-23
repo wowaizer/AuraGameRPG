@@ -8,7 +8,10 @@
 #include "AuraGameMain/AbilitySystem/Data/CharacterClassInfo.h"
 #include "AuraEnemy.generated.h"
 
+
 class UWidgetComponent;
+class UBehaviorTree;
+class AAuraAIController;
 /**
  * 
  */
@@ -20,6 +23,8 @@ class AURAGAMEMAIN_API AAuraEnemy : public AAuraCharacterBase, public IEnemyInte
 public:
 	AAuraEnemy();
 
+	virtual void PossessedBy(AController *NewController) override;
+
 	//** Enemy Interface */
 	virtual void HighLightActor() override;
 	virtual void UnHighLightActor() override;
@@ -28,7 +33,13 @@ public:
 	//** Combat Interface */
 	virtual int32 GetPlayerLevel() override;
 
+	
+	virtual void HitReaction_Implementation(bool IsHit); //Add this to fix the problem with Enemy HitReaction. Using in Combat Intetface
+																		  //Realization in CPP file, but fires in BP 
 	virtual void Die() override;
+
+	virtual void SetCombatTarget_Implementation(AActor *InCombatTarget) override;
+	virtual AActor *GetCombatTarget_Implementation() const override;
 	//** End Combat Interface */
 
 
@@ -38,17 +49,23 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnAttributeChangedSignature OnMaxHealthChanged;
 
-	void HitReactTagChanged(const FGameplayTag, int32 NewCount);
+	UFUNCTION()
+	void HitReactTagChanged(const FGameplayTag TagChange, int32 NewCount);
 	
+	void OnOwnerTagChange(FGameplayTag TagChange, int32 NewCount);
+
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
 	bool bHitReacting = false;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Combat")
 	float BaseWalkSpeed = 250.f;
 
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Combat")
 	float LifeSpan = 5.f;
+
+	UPROPERTY(BlueprintReadWrite,Category = "Combat")
+	TObjectPtr<AActor>CombatTarget;
 
 protected:
 
@@ -65,5 +82,10 @@ protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthBar;
 
+
+	UPROPERTY(EditAnywhere,Category = "AI")
+	TObjectPtr<UBehaviorTree>BehaviorTree;
 	
+	UPROPERTY()
+	TObjectPtr<AAuraAIController>AuraAIController;
 };
