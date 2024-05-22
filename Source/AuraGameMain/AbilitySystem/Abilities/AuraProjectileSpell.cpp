@@ -17,7 +17,8 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	
 }
 
-void UAuraProjectileSpell::SpawnProjectile(const FVector &ProjectileTargetLocation)
+void UAuraProjectileSpell::SpawnProjectile(const FVector &ProjectileTargetLocation,const FGameplayTag &SocketTag,
+	bool bOverridePitch, float PitchOverride)
 {
 	//UKismetSystemLibrary::PrintString(this,FString("AcivateAbility C++"),true,true,FLinearColor::Red,3.f);
 
@@ -31,11 +32,16 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector &ProjectileTargetLocati
 
 		const FVector SocketLocation =  ICombatInterface::Execute_GetCombatSocketLocation(
 			GetAvatarActorFromActorInfo(), 
-			FAuraGameplayTags::Get().Montage_Attack_Weapon
+			SocketTag
 			);
 
 		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
 		//Rotation.Pitch = 0.f;
+
+		if(bOverridePitch)
+		{
+			Rotation.Pitch = PitchOverride;
+		}
 
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);

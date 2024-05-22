@@ -5,6 +5,7 @@
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
 #include <AuraGameMain/AuraGameplayTags.h>
+#include <Kismet/GameplayStatics.h>
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -44,6 +45,8 @@ void AAuraCharacterBase::Die()
 
 void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 {
+	UGameplayStatics::PlaySoundAtLocation(this,DeathSound,GetActorLocation(),GetActorRotation());
+
 	Weapon->SetSimulatePhysics(true);
 	Weapon->SetEnableGravity(true);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
@@ -66,21 +69,27 @@ void AAuraCharacterBase::BeginPlay()
 
 FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag &MontageTag)
 {
-	//TODO return correct socket based on MontageTag
-	if(MontageTag.MatchesTagExact(FAuraGameplayTags::Get().Montage_Attack_Weapon) && IsValid(Weapon))
+	//return correct socket based on MontageTag
+	if(MontageTag.MatchesTagExact(FAuraGameplayTags::Get().CombatSocket_Weapon) && IsValid(Weapon))
 	{
 		return Weapon->GetSocketLocation(WeaponTipSocketName);
 	}
 
-	if (MontageTag.MatchesTagExact(FAuraGameplayTags::Get().Montage_Attack_LeftHand))
+	if (MontageTag.MatchesTagExact(FAuraGameplayTags::Get().CombatSocket_LeftHand))
 	{
 		return GetMesh()->GetSocketLocation(LeftHandSocketName);
 	}
 
-	if (MontageTag.MatchesTagExact(FAuraGameplayTags::Get().Montage_Attack_RightHand))
+	if (MontageTag.MatchesTagExact(FAuraGameplayTags::Get().CombatSocket_RightHand))
 	{
 		return GetMesh()->GetSocketLocation(RightHandSocketName);
 	}
+
+	if (MontageTag.MatchesTagExact(FAuraGameplayTags::Get().CombatSocket_Tail))
+	{
+		return GetMesh()->GetSocketLocation(TailSocketName);
+	}
+
 
 	return FVector();
 }
@@ -99,6 +108,35 @@ AActor* AAuraCharacterBase::GetAvatar_Implementation()
 TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation()
 {
 	return AttackedMontages;
+}
+
+UNiagaraSystem* AAuraCharacterBase::GetBloodEffect_Implementation()
+{
+	return BloodEffect;
+}
+
+FTaggedMontage AAuraCharacterBase::GetTaggedMontage_Implementation(const FGameplayTag& MontageTag)
+{
+
+	for (FTaggedMontage TaggedMontage : AttackedMontages)
+	{
+		if(TaggedMontage.MontageTag == MontageTag)
+		{
+			return TaggedMontage;
+		}
+	}
+	return FTaggedMontage();
+
+}
+
+int32 AAuraCharacterBase::GetMinionCount_Implementation()
+{
+	return MinionCount;
+}
+
+void AAuraCharacterBase::IncrementMinionCount_Implementation(int32 Amount)
+{
+	MinionCount += Amount;
 }
 
 
