@@ -8,6 +8,7 @@
 #include "AuraGameMain/AuraGameplayTags.h"
 #include <AuraGameMain/Player/AuraPlayerController.h>
 #include "AuraAbilitySystemLibrary.h"
+#include "AuraGameMain/AuraLogChannels.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -149,6 +150,8 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		SetMana(FMath::Clamp(GetMana(),0.f,GetMaxMana()));
 	}
 
+	
+
 	if(Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
 		const float LocaIncomingDamage = GetIncomingDamage();
@@ -189,6 +192,15 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 			ShowFloatingText(Props,LocaIncomingDamage,bBlock,bCritHit);
 				
 		}
+	}
+
+	if(Data.EvaluatedData.Attribute == GetIncomingXPAttribute())
+	{
+		const float LocalIncomingXP = GetIncomingXP();
+		SetIncomingXP(0.f);
+
+		UE_LOG(LogAura,Log,TEXT("IncomingXP: %f"),GetIncomingXP());
+
 	}
 }
 

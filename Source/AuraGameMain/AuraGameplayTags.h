@@ -44,6 +44,9 @@ struct FAuraGameplayTags
 		FGameplayTag Attributes_Resistance_Arcane;
 		FGameplayTag Attributes_Resistance_Physical;
 
+		//Meta
+		FGameplayTag Attributes_Meta_IncomingXP;
+
 		//Ability Input
 		FGameplayTag InputTag_LMB;
 		FGameplayTag InputTag_RMB;
@@ -60,6 +63,10 @@ struct FAuraGameplayTags
 
 		FGameplayTag Abilities_Attack;
 		FGameplayTag Abilities_Summon;
+		FGameplayTag Abilities_Fire_FireBolt;
+
+		FGameplayTag Cooldown_Fire_FireBolt;
+
 
 		FGameplayTag CombatSocket_Weapon;
 		FGameplayTag CombatSocket_RightHand;

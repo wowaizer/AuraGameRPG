@@ -82,6 +82,13 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		AddNativeGameplayTag(FName("Attributes.Secondary.ManaRegeneration"),
 			FString("Amount of mana regenerated in 1 second"));
 
+	//Meta
+
+	GameplayTags.Attributes_Meta_IncomingXP = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Attributes.Meta.IncomingXP"),
+			FString("Amount of XP that added"));
+
+
 	//Ability Input
 
 	GameplayTags.InputTag_LMB = UGameplayTagsManager::Get().
@@ -160,6 +167,17 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Abilities_Summon = UGameplayTagsManager::Get().
 		AddNativeGameplayTag(FName("Abilities.Summon"),
 			FString("Summon Ability Tag"));
+
+
+	GameplayTags.Abilities_Fire_FireBolt = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Abilities.Fire.FireBolt"),
+			FString("FireBolt Tag"));
+
+	//Cooldown tags
+
+	GameplayTags.Cooldown_Fire_FireBolt = UGameplayTagsManager::Get().
+		AddNativeGameplayTag(FName("Cooldown.Fire.FireBolt"),
+			FString("FireBolt Cooldown Tag"));
 
 
 	//CombatSocket tags

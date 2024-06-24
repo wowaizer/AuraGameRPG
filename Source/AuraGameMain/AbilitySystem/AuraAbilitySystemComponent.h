@@ -8,8 +8,8 @@
 
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags,const FGameplayTagContainer& /* Asset Tags*/);
-
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FAbilitiesGiven,UAuraAbilitySystemComponent*);
+DECLARE_DELEGATE_OneParam(FForEachAbility,const FGameplayAbilitySpec&);
 /**
  * 
  */
@@ -21,18 +21,27 @@ class AURAGAMEMAIN_API UAuraAbilitySystemComponent : public UAbilitySystemCompon
 
 public:
 	void AbilityActorInfoSet();
+	void ForEachAbility(const FForEachAbility& Delegate);
 
-	FEffectAssetTags EffectAssetTags;	
+	FEffectAssetTags EffectAssetTags;
+	FAbilitiesGiven AbilitiesGivenDelegate;
 
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>> &StartupAbilities);
+	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>> &StartupPassiveAbilities);
+	bool bStartupAbilitiesGiven = false;
 
 	void AbilityInputTagHeld(const FGameplayTag &InputTag);
 	void AbilityInputTagReleased(const FGameplayTag &InputTag);
+
+	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
 protected:
 	UFUNCTION(Client,Reliable)
 	void ClientEffectApplied(UAbilitySystemComponent *AbilitySystemComponent, const FGameplayEffectSpec &EffectSpec, 
 		FActiveGameplayEffectHandle ActiveEffectHandle);
+
+	virtual void OnRep_ActivateAbilities() override;
 
 	
 };

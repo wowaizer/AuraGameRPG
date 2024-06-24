@@ -5,7 +5,6 @@
 #include "AuraCharacterBase.h"
 #include "AuraGameMain/Interaction/EnemyInterface.h"
 #include "AuraGameMain/UI/WidgetController/OverlayWidgetController.h"
-#include "AuraGameMain/AbilitySystem/Data/CharacterClassInfo.h"
 #include "AuraEnemy.generated.h"
 
 
@@ -76,8 +75,7 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Character Class Defaults")
 	int32 Level = 1;
 
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Character Class Defaults")
-	ECharacterClass CharacterClass  = ECharacterClass::Warrior;
+
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthBar;
